@@ -2,31 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { selectFrom, insertInto } from '@/lib/supabase-helpers';
 
-// Helper function to create notification
-async function createNotification(
-  adminId: string,
-  applicationId: string,
-  businessName: string,
-  email: string,
-  message: string,
-  type: string
-) {
-  try {
-    await insertInto('notifications', [{
-      admin_id: adminId,
-      application_id: applicationId,
-      message,
-      type,
-      is_read: false,
-      created_at: new Date().toISOString(),
-    }]);
-
-    console.log(`✅ Notification created for ${businessName}`);
-  } catch (err) {
-    console.error('Error in createNotification:', err);
-  }
-}
-
 /**
  * POST /api/partner-applications
  * Submit a new partner application
@@ -108,14 +83,26 @@ export async function POST(request: NextRequest) {
     if (data && (data as any)[0]) {
       const applicationId = (data as any)[0].id;
       const message = `🆕 New partner application from ${business_name} (${service_type}). Email: ${email}`;
-      await createNotification(
-        'admin@skm.com',
-        applicationId,
-        business_name,
-        email,
-        message,
-        'setting_change' // Using existing allowed type
-      );
+      console.log(`📢 Creating notification for admin with app ID: ${applicationId}`);
+      
+      try {
+        const notifResult = await insertInto('notifications', [{
+          admin_id: 'admin@skm.com',
+          application_id: applicationId,
+          message,
+          type: 'setting_change', // Must match NotificationCenter filter
+          is_read: false,
+          created_at: new Date().toISOString(),
+        }]);
+        
+        if (notifResult.error) {
+          console.error('❌ Notification creation error:', notifResult.error);
+        } else {
+          console.log('✅ Notification created successfully:', notifResult.data);
+        }
+      } catch (notifErr) {
+        console.error('❌ Error creating notification:', notifErr);
+      }
     }
 
     // TODO: Send confirmation email to the applicant
