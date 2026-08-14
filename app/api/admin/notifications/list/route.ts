@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { selectFrom } from '@/lib/supabase-helpers';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,29 +10,32 @@ export async function GET(request: NextRequest) {
 
     const adminId = 'admin@skm.com';
 
-    // Fetch all notifications using helper
-    const result = await selectFrom('notifications', '*');
-    let data = (result.data as any) || [];
+    // Use service role to bypass RLS and fetch all admin notifications
+    const client = supabaseAdmin as any;
+    const result = await client
+      .from('notifications')
+      .select('*')
+      .eq('admin_id', adminId)
+      .order('created_at', { ascending: false });
 
-    // Filter by admin_id
-    data = data.filter((n: any) => n.admin_id === adminId);
+    if (result.error) {
+      console.error('Supabase error:', result.error);
+      throw result.error;
+    }
+
+    let data = (result.data as any) || [];
 
     // Filter by unread if needed
     if (unreadOnly) {
       data = data.filter((n: any) => n.is_read === false);
     }
 
-    // Sort by created_at descending
-    data = data.sort((a: any, b: any) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-
     const count = data.length;
 
     // Apply pagination
     data = data.slice(offset, offset + limit);
 
-    console.log(`Admin notifications: ${data.length || 0} loaded`);
+    console.log(`✅ Admin notifications: ${data.length} of ${count} total loaded`);
 
     return NextResponse.json({
       success: true,
@@ -45,9 +48,9 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Admin notifications list error:', error);
+    console.error('❌ Admin notifications list error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: (error as any)?.message },
       { status: 500 }
     );
   }
