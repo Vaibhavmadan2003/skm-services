@@ -1,0 +1,15 @@
+'use client';
+
+import { SettingsProvider } from './context/SettingsContext';
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <SettingsProvider>
+      {children}
+    </SettingsProvider>
+  );
+}
