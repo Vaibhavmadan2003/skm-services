@@ -225,17 +225,23 @@ export default function AdminLoginPage() {
       }
       localStorage.setItem('lastAccountType', accountType);
 
-      // Redirect based on account type
-      if (accountType === 'super_admin') {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/partner/dashboard');
-      }
+      // Log and redirect based on account type
+      console.log('✅ Login successful, redirecting to dashboard...');
+      
+      // Use a small delay to ensure state updates
+      setTimeout(() => {
+        if (accountType === 'super_admin') {
+          console.log('Redirecting to /admin/dashboard');
+          window.location.href = '/admin/dashboard';
+        } else {
+          console.log('Redirecting to /partner/dashboard');
+          window.location.href = '/partner/dashboard';
+        }
+      }, 500);
     } catch (err) {
       setError('An error occurred. Please try again.');
       console.error('Login error:', err);
       generateCaptcha();
-    } finally {
       setLoading(false);
     }
   };
