@@ -209,13 +209,13 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Store session info
+      // Store session info in localStorage (for persistence across pages)
       if (data.token) {
-        sessionStorage.setItem('authToken', data.token);
-        sessionStorage.setItem('userRole', accountType);
-        sessionStorage.setItem('userData', JSON.stringify(data.user || {}));
+        localStorage.setItem('adminToken', data.token);
+        localStorage.setItem('userRole', accountType);
+        localStorage.setItem('userData', JSON.stringify(data.user || {}));
         if (data.branch) {
-          sessionStorage.setItem('branchData', JSON.stringify(data.branch));
+          localStorage.setItem('branchData', JSON.stringify(data.branch));
         }
       }
       

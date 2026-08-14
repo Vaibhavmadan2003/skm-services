@@ -32,13 +32,41 @@ export default function AdminDashboard() {
   const [bookingsLoading, setBookingsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      router.push('/admin/login');
-    } else {
-      setIsAuthorized(true);
-    }
+    // Check if user is logged in by verifying token with backend
+    const verifyAuth = async () => {
+      try {
+        const token = localStorage.getItem('adminToken');
+        
+        if (!token) {
+          router.push('/admin/login');
+          return;
+        }
+
+        // Verify token with backend
+        const response = await fetch('/api/auth/admin/check', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token }),
+        });
+
+        if (!response.ok) {
+          // Token invalid or expired
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('userData');
+          router.push('/admin/login');
+          return;
+        }
+
+        setIsAuthorized(true);
+      } catch (error) {
+        console.error('Auth verification error:', error);
+        router.push('/admin/login');
+      }
+    };
+
+    verifyAuth();
   }, [router]);
 
   useEffect(() => {
