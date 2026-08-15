@@ -34,9 +34,9 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Check both localStorage (super admin) and sessionStorage (branch admin)
-        const userData = localStorage.getItem('userData') || sessionStorage.getItem('userData');
-        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        // Check both localStorage (for all users)
+        const userData = localStorage.getItem('userData');
+        const token = localStorage.getItem('adminToken');
         
         if (!userData || !token) {
           console.log('❌ No session found, redirecting to login');

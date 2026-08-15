@@ -26,13 +26,13 @@ export default function PartnerLayout({ children }: LayoutProps) {
   useEffect(() => {
     if (!isHydrated) return;
 
-    // Check authentication from sessionStorage (set during login)
+    // Check authentication from localStorage (set during login)
     const checkAuth = () => {
       try {
-        const adminToken = sessionStorage.getItem('adminToken');
-        const userData = sessionStorage.getItem('userData');
-        const branchData = sessionStorage.getItem('branchData');
-        const userRole = sessionStorage.getItem('userRole');
+        const adminToken = localStorage.getItem('adminToken');
+        const userData = localStorage.getItem('userData');
+        const branchData = localStorage.getItem('branchData');
+        const userRole = localStorage.getItem('userRole');
 
         console.log('🔍 Partner layout auth check:', {
           hasToken: !!adminToken,
@@ -65,7 +65,7 @@ export default function PartnerLayout({ children }: LayoutProps) {
         // Get logo from branch data and set state for display
         if (branch?.logo_url) {
           setBranchLogo(branch.logo_url);
-          sessionStorage.setItem('branchLogo', branch.logo_url);
+          localStorage.setItem('branchLogo', branch.logo_url);
         }
         setIsLoading(false);
       } catch (error) {
@@ -108,11 +108,11 @@ export default function PartnerLayout({ children }: LayoutProps) {
 
   const handleLogout = async () => {
     try {
-      // Clear sessionStorage
-      sessionStorage.removeItem('adminToken');
-      sessionStorage.removeItem('userRole');
-      sessionStorage.removeItem('userData');
-      sessionStorage.removeItem('branchData');
+      // Clear localStorage
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('branchData');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
