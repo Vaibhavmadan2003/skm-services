@@ -36,22 +36,56 @@ export default function PartnerLayout({ children }: LayoutProps) {
 
         console.log('🔍 Partner layout auth check:', {
           hasToken: !!adminToken,
+          tokenLength: adminToken?.length || 0,
           hasUserData: !!userData,
+          userDataLength: userData?.length || 0,
+          hasBranchData: !!branchData,
+          branchDataLength: branchData?.length || 0,
           userRole,
-          isHydrated
+          isHydrated,
+          timestamp: new Date().toISOString()
         });
 
-        if (!adminToken || !userData || userRole !== 'branch_admin') {
-          console.log('❌ Auth failed, redirecting to login');
+        if (!adminToken) {
+          console.error('❌ Missing adminToken');
           setIsAuthenticated(false);
           setIsLoading(false);
-          // Use window.location for hard redirect
           window.location.href = '/admin/login';
           return;
         }
 
-        const user = JSON.parse(userData);
-        const branch = branchData ? JSON.parse(branchData) : null;
+        if (!userData) {
+          console.error('❌ Missing userData');
+          setIsAuthenticated(false);
+          setIsLoading(false);
+          window.location.href = '/admin/login';
+          return;
+        }
+
+        if (userRole !== 'branch_admin') {
+          console.error('❌ Invalid userRole:', userRole);
+          setIsAuthenticated(false);
+          setIsLoading(false);
+          window.location.href = '/admin/login';
+          return;
+        }
+
+        let user, branch;
+        try {
+          user = JSON.parse(userData);
+          console.log('✅ Parsed userData:', user);
+        } catch (e) {
+          console.error('❌ Failed to parse userData:', e);
+          throw e;
+        }
+
+        try {
+          branch = branchData ? JSON.parse(branchData) : null;
+          console.log('✅ Parsed branchData:', branch);
+        } catch (e) {
+          console.error('❌ Failed to parse branchData:', e);
+          throw e;
+        }
         
         console.log('✅ Auth passed, setting authenticated state');
         setIsAuthenticated(true);
@@ -59,17 +93,23 @@ export default function PartnerLayout({ children }: LayoutProps) {
         
         // Set branch_id from database
         if (branch?.id) {
+          console.log('✅ Setting branchId:', branch.id);
           setBranchId(branch.id);
+        } else {
+          console.warn('⚠️ No branch ID found');
         }
         
         // Get logo from branch data and set state for display
         if (branch?.logo_url) {
+          console.log('✅ Setting branchLogo:', branch.logo_url);
           setBranchLogo(branch.logo_url);
           localStorage.setItem('branchLogo', branch.logo_url);
         }
         setIsLoading(false);
+        console.log('✅ Auth check complete');
       } catch (error) {
-        console.error('Auth check error:', error);
+        console.error('❌ Auth check error:', error);
+        console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
         setIsAuthenticated(false);
         setIsLoading(false);
         window.location.href = '/admin/login';
