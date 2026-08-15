@@ -28,7 +28,16 @@ export default function PartnerLayout({ children }: LayoutProps) {
         const branchData = sessionStorage.getItem('branchData');
         const userRole = sessionStorage.getItem('userRole');
 
+        console.log('🔍 Partner layout auth check:', {
+          hasToken: !!adminToken,
+          hasUserData: !!userData,
+          userRole,
+          isLoading
+        });
+
         if (!adminToken || !userData || userRole !== 'branch_admin') {
+          console.log('❌ Auth failed, redirecting to login');
+          setIsAuthenticated(false);
           router.push('/admin/login');
           return;
         }
@@ -36,6 +45,7 @@ export default function PartnerLayout({ children }: LayoutProps) {
         const user = JSON.parse(userData);
         const branch = branchData ? JSON.parse(branchData) : null;
         
+        console.log('✅ Auth passed, setting authenticated state');
         setIsAuthenticated(true);
         setBranchName(branch?.name || user.fullName || 'Branch Dashboard');
         
@@ -51,6 +61,7 @@ export default function PartnerLayout({ children }: LayoutProps) {
         }
       } catch (error) {
         console.error('Auth check error:', error);
+        setIsAuthenticated(false);
         router.push('/admin/login');
       } finally {
         setIsLoading(false);
@@ -58,7 +69,7 @@ export default function PartnerLayout({ children }: LayoutProps) {
     };
 
     checkAuth();
-  }, [router]);
+  }, []);
 
   // Listen for logo updates from settings page
   useEffect(() => {
