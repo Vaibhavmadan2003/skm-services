@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { selectFrom } from '@/lib/supabase-helpers';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,11 +39,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user information - use helper to avoid type errors
-    const userResult = await selectFrom('users', 'id, email, full_name, role, branch_id, status');
-    const allUsers = (userResult.data as any) || [];
-    const userList = allUsers.filter((u: any) => u.id === data.user.id);
+    // Get user information using service role to bypass RLS
+    const userClient = supabaseAdmin as any;
+    const userQueryResult = await userClient
+      .from('users')
+      .select('id, email, full_name, role, branch_id, status')
+      .eq('id', data.user.id);
 
+    if (userQueryResult.error) {
+      console.error('Error fetching user:', userQueryResult.error);
+      return NextResponse.json(
+        { error: 'User profile not found. Please contact support.' },
+        { status: 404 }
+      );
+    }
+
+    const userList = (userQueryResult.data as any) || [];
     if (!userList || userList.length === 0) {
       console.log('No user found for ID:', data.user.id);
       return NextResponse.json(
@@ -63,10 +73,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get branch details - use helper
-    const branchResult = await selectFrom('branches', 'id, name, email, phone, city, address, logo_url, manager_name, working_hours_start, working_hours_end');
-    const allBranches = (branchResult.data as any) || [];
-    const branch = allBranches.find((b: any) => b.id === user.branch_id);
+    // Get branch details using service role
+    const branchClient = supabaseAdmin as any;
+    const branchQueryResult = await branchClient
+      .from('branches')
+      .select('id, name, email, phone, city, address, logo_url, manager_name, working_hours_start, working_hours_end')
+      .eq('id', user.branch_id)
+      .single();
+
+    const branch = branchQueryResult.data;
+    
+    if (branchQueryResult.error) {
+      console.error('Error fetching branch:', branchQueryResult.error);
+      // Continue without branch details - branch might have been deleted
+      console.log(`⚠️ Branch ${user.branch_id} not found for user ${email}`);
+    }
 
     console.log(`✅ Branch admin logged in: ${email} (Branch: ${user.branch_id})`);
 
