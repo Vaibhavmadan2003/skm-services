@@ -72,36 +72,44 @@ export default function AssignmentTab({ booking, onBranchAssigned }: AssignmentT
     if (branchData) {
       try {
         setLoading(true);
+        const payload = {
+          bookingId: booking.id,
+          branchId: selectedBranch,
+          bookingNumber: booking.bookingNumber,
+          customerName: booking.customerName,
+          service: booking.serviceType,
+          scheduledDate: booking.bookingDate,
+          bookingTime: booking.bookingTime,
+          amount: booking.amount,
+          customerPhone: booking.customerPhone,
+          customerAddress: booking.customerAddress,
+          city: booking.customerCity,
+        };
+        
+        console.log('📍 [AssignmentTab] About to call /api/admin/bookings/assign with payload:', payload);
+        
         // Call the API to assign booking and create notification
         const response = await fetch('/api/admin/bookings/assign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            bookingId: booking.id,
-            branchId: selectedBranch,
-            bookingNumber: booking.bookingNumber,
-            customerName: booking.customerName,
-            service: booking.serviceType,
-            scheduledDate: booking.bookingDate,
-            bookingTime: booking.bookingTime,
-            amount: booking.amount,
-            customerPhone: booking.customerPhone,
-            customerAddress: booking.customerAddress,
-            city: booking.customerCity,
-          }),
+          body: JSON.stringify(payload),
         });
 
+        console.log('📍 [AssignmentTab] API Response status:', response.status);
+        
         if (response.ok) {
+          console.log('📍 [AssignmentTab] Assignment successful');
           // Call the callback to update local state
           onBranchAssigned?.(selectedBranch, branchData.name);
           alert(`✓ Branch ${branchData.name} assigned successfully! Notification sent to branch admin.`);
           setSelectedBranch('');
         } else {
           const errorData = await response.json();
+          console.error('📍 [AssignmentTab] Assignment failed:', errorData);
           alert(`Failed to assign branch: ${errorData.error || 'Unknown error'}`);
         }
       } catch (err) {
-        console.error('Error assigning branch:', err);
+        console.error('📍 [AssignmentTab] Error assigning branch:', err);
         alert('Error assigning branch');
       } finally {
         setLoading(false);
