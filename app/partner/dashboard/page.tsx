@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Loader, AlertCircle } from 'lucide-react';
 
 interface DashboardStats {
@@ -23,40 +24,51 @@ interface RecentBooking {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         // Check both localStorage (super admin) and sessionStorage (branch admin)
         const userData = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
         
-        if (!userData) {
-          setError('User session not found. Please log in again.');
-          setLoading(false);
+        if (!userData || !token) {
+          console.log('❌ No session found, redirecting to login');
+          setIsRedirecting(true);
+          window.location.href = '/admin/login';
           return;
         }
 
-        const user = JSON.parse(userData);
-        const branchId = user.branchId || user.branch_id;
-        
-        if (!branchId) {
-          setError('Branch information not found');
-          setLoading(false);
-          return;
-        }
+        try {
+          const user = JSON.parse(userData);
+          const branchId = user.branchId || user.branch_id;
+          
+          if (!branchId) {
+            console.log('❌ No branch ID found, redirecting to login');
+            setIsRedirecting(true);
+            window.location.href = '/admin/login';
+            return;
+          }
 
-        const response = await fetch(`/api/partner/dashboard/stats?branch_id=${branchId}`);
-        const data = await response.json();
+          const response = await fetch(`/api/partner/dashboard/stats?branch_id=${branchId}`);
+          const data = await response.json();
 
-        if (data.success) {
-          setStats(data.stats);
-          setRecentBookings(data.recent_bookings || []);
-        } else {
-          setError(data.error || 'Failed to load dashboard data');
+          if (data.success) {
+            setStats(data.stats);
+            setRecentBookings(data.recent_bookings || []);
+          } else {
+            console.error('Failed to fetch dashboard data:', data.error);
+            setError(data.error || 'Failed to load dashboard data');
+          }
+        } catch (err) {
+          console.error('Error parsing user data:', err);
+          setError('Session error. Please log in again.');
         }
       } catch (err) {
         setError('An error occurred');
@@ -67,7 +79,18 @@ export default function DashboardPage() {
     };
 
     fetchStats();
-  }, []);
+  }, [router]);
+
+  if (isRedirecting) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <Loader style={{ width: '32px', height: '32px', animation: 'spin 1s linear infinite', color: '#0052CC', marginBottom: '16px' }} />
+          <p style={{ fontSize: '14px', color: '#6b7280' }}>Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

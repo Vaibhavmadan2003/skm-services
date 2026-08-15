@@ -23,12 +23,12 @@ export default function PartnerLayout({ children }: LayoutProps) {
     // Check authentication from sessionStorage (set during login)
     const checkAuth = () => {
       try {
-        const authToken = sessionStorage.getItem('authToken');
+        const adminToken = sessionStorage.getItem('adminToken');
         const userData = sessionStorage.getItem('userData');
         const branchData = sessionStorage.getItem('branchData');
         const userRole = sessionStorage.getItem('userRole');
 
-        if (!authToken || !userData || userRole !== 'branch_admin') {
+        if (!adminToken || !userData || userRole !== 'branch_admin') {
           router.push('/admin/login');
           return;
         }
