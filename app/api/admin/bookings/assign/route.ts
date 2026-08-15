@@ -115,8 +115,16 @@ export async function POST(request: NextRequest) {
     // Get branch email for notification
     const branchEmail = branch.email;
     
+    console.log('[DIAGNOSTIC] Branch email retrieval:', {
+      branchId,
+      branchEmail,
+      branchName: branch.name,
+      branchEmailType: typeof branchEmail,
+      branchEmailExists: !!branchEmail,
+    });
+    
     if (!branchEmail) {
-      console.error('Branch has no email assigned');
+      console.error('[DIAGNOSTIC] Branch has no email assigned', { branchId });
       return NextResponse.json(
         { error: 'Branch has no email assigned' },
         { status: 400 }
@@ -126,6 +134,27 @@ export async function POST(request: NextRequest) {
     // Create notification with branch_email instead of user_id
     try {
       const message = `New booking assignment: ${bookingNumber} - ${service} for ${customerName}`;
+      const metadata = {
+        bookingId,
+        customerName,
+        service,
+        scheduledDate,
+        bookingTime,
+        amount,
+        customerPhone,
+        customerAddress,
+        city,
+      };
+      
+      console.log('[DIAGNOSTIC] Creating notification with:', {
+        branchEmail,
+        branchId,
+        bookingId,
+        bookingNumber,
+        message,
+        metadataKeys: Object.keys(metadata),
+        metadataSize: JSON.stringify(metadata).length,
+      });
       
       const { data, error } = await createBookingAssignmentNotification(
         branchEmail,
@@ -133,26 +162,38 @@ export async function POST(request: NextRequest) {
         bookingId,
         bookingNumber,
         message,
-        {
-          bookingId,
-          customerName,
-          service,
-          scheduledDate,
-          bookingTime,
-          amount,
-          customerPhone,
-          customerAddress,
-          city,
-        }
+        metadata
       );
 
       if (error) {
-        console.error('Error creating booking assignment notification:', error);
+        console.error('[DIAGNOSTIC] Error creating booking assignment notification:', {
+          error,
+          errorCode: (error as any)?.code,
+          errorMessage: (error as any)?.message,
+          errorDetails: (error as any)?.details,
+          branchId,
+          branchEmail,
+          bookingNumber,
+        });
       } else {
-        console.log('✓ Booking assignment notification created:', { branch_id: branchId, branch_email: branchEmail, booking_number: bookingNumber });
+        console.log('[DIAGNOSTIC] ✓ Booking assignment notification created successfully:', {
+          notificationId: data?.[0]?.id,
+          branch_id: branchId,
+          branch_email: branchEmail,
+          booking_number: bookingNumber,
+          createdAt: data?.[0]?.created_at,
+          dataLength: data?.length,
+          fullData: data?.[0],
+        });
       }
     } catch (err) {
-      console.error('Exception creating booking assignment notification:', err);
+      console.error('[DIAGNOSTIC] Exception creating booking assignment notification:', {
+        error: err,
+        errorMessage: (err as any)?.message,
+        errorStack: (err as any)?.stack,
+        branchId,
+        branchEmail,
+      });
     }
 
     // Send email

@@ -10,13 +10,14 @@ export async function GET(request: NextRequest) {
     const unreadOnly = searchParams.get('unreadOnly') !== 'false';
 
     if (!branchId) {
+      console.error('Missing branch_id parameter in branch notifications request');
       return NextResponse.json(
         { error: 'branch_id is required' },
         { status: 400 }
       );
     }
 
-    // Get branch details using service role to bypass RLS
+    // Verify branch exists
     const branchClient = supabaseAdmin as any;
     const branchResult = await branchClient
       .from('branches')
@@ -25,14 +26,14 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (branchResult.error || !branchResult.data?.email) {
-      console.error('Error fetching branch:', branchResult.error);
+      console.error('Branch not found:', branchId);
       return NextResponse.json(
         { error: 'Branch not found or no email assigned' },
         { status: 404 }
       );
     }
 
-    // Get notifications using service role to bypass RLS
+    // Fetch notifications
     const notifClient = supabaseAdmin as any;
     let query = notifClient
       .from('notifications')
@@ -67,8 +68,6 @@ export async function GET(request: NextRequest) {
 
     const count = countResult.count || 0;
 
-    console.log(`✅ Branch ${branchId} notifications: ${data.length} loaded (total: ${count})`);
-
     return NextResponse.json({
       success: true,
       data: data || [],
@@ -80,7 +79,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Branch notifications list error:', error);
+    console.error('Branch notifications list error:', (error as any)?.message);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

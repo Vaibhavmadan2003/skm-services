@@ -28,11 +28,9 @@ export default function BranchNotificationCenter({ branchId }: BranchNotificatio
 
   useEffect(() => {
     if (!branchId) {
-      console.log('No branchId provided');
       return;
     }
     
-    console.log(`Initializing notifications for branch: ${branchId}`);
     loadNotifications();
     const interval = setInterval(loadNotifications, 5000);
     return () => clearInterval(interval);
@@ -40,24 +38,50 @@ export default function BranchNotificationCenter({ branchId }: BranchNotificatio
 
   const loadNotifications = async () => {
     try {
-      const response = await fetch(`/api/branch/notifications/list?branch_id=${branchId}&unreadOnly=false&limit=100`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`Branch notifications loaded for ${branchId}:`, data);
-        
-        const allNotifications = (data.data || []).map((n: any) => ({
-          ...n,
-          metadata: typeof n.metadata === 'string' ? JSON.parse(n.metadata) : n.metadata,
-        }));
-        
-        setNotifications(allNotifications);
-        const unread = allNotifications.filter((n: Notification) => !n.is_read).length;
-        setUnreadCount(unread);
-      } else {
-        console.error('Failed to load notifications:', response.status);
+      if (!branchId) {
+        console.warn('Cannot load notifications: branchId is not set');
+        return;
       }
+
+      // Validate branchId is a non-empty string
+      if (typeof branchId !== 'string' || branchId.trim().length === 0) {
+        console.error('Invalid branchId format:', branchId);
+        return;
+      }
+
+      const url = `/api/branch/notifications/list?branch_id=${encodeURIComponent(branchId)}&unreadOnly=false&limit=100`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to load notifications:', {
+          status: response.status,
+          error: errorData.error,
+        });
+        return;
+      }
+
+      const data = await response.json();
+      
+      if (!data.success || !Array.isArray(data.data)) {
+        console.error('Invalid API response format:', data);
+        return;
+      }
+
+      const allNotifications = (data.data || []).map((n: any) => ({
+        ...n,
+        metadata: typeof n.metadata === 'string' ? JSON.parse(n.metadata) : n.metadata,
+      }));
+
+      setNotifications(allNotifications);
+      const unread = allNotifications.filter((n: Notification) => !n.is_read).length;
+      setUnreadCount(unread);
     } catch (err) {
-      console.error('Error loading branch notifications:', err);
+      console.error('Error loading branch notifications:', {
+        error: (err as any)?.message,
+        branchId,
+      });
     }
   };
 
@@ -68,7 +92,11 @@ export default function BranchNotificationCenter({ branchId }: BranchNotificatio
         headers: { 'Content-Type': 'application/json' },
       });
 
-      if (!response.ok) throw new Error('Failed to mark as read');
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        console.error('Failed to mark notification as read:', error);
+        return;
+      }
 
       setNotifications(
         notifications.map(n =>
@@ -77,7 +105,7 @@ export default function BranchNotificationCenter({ branchId }: BranchNotificatio
       );
       setUnreadCount(Math.max(0, unreadCount - 1));
     } catch (err) {
-      console.error('Error marking notification as read:', err);
+      console.error('Error marking notification as read:', (err as any)?.message);
     }
   };
 
