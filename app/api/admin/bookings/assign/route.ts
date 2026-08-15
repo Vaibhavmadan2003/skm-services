@@ -67,6 +67,8 @@ async function sendBookingAssignmentEmail(
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log('📍 [ASSIGN] POST /api/admin/bookings/assign called');
+    
     const body = await request.json();
     const {
       bookingId,
@@ -81,6 +83,14 @@ export async function POST(request: NextRequest) {
       customerAddress,
       city,
     } = body;
+    
+    console.log('📍 [ASSIGN] Request body received:', {
+      bookingId,
+      branchId,
+      bookingNumber,
+      customerName,
+      service,
+    });
 
     // Get branch details using helper
     const branchResult = await getBranchDetails(branchId);
@@ -133,6 +143,7 @@ export async function POST(request: NextRequest) {
     
     // Create notification with branch_email instead of user_id
     try {
+      console.log('📍 [ASSIGN] About to create booking assignment notification');
       const message = `New booking assignment: ${bookingNumber} - ${service} for ${customerName}`;
       const metadata = {
         bookingId,
@@ -206,6 +217,8 @@ export async function POST(request: NextRequest) {
       amount,
       branch.name
     );
+    
+    console.log('📍 [ASSIGN] Successfully assigned booking, about to return response');
 
     return NextResponse.json({
       success: true,
@@ -213,7 +226,7 @@ export async function POST(request: NextRequest) {
       data: updatedBooking && updatedBooking.length > 0 ? updatedBooking[0] : { bookingId, branchId, status: 'assigned' },
     });
   } catch (error) {
-    console.error('Error in POST /api/admin/bookings/assign:', error);
+    console.error('❌ [ASSIGN] Error in POST /api/admin/bookings/assign:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
