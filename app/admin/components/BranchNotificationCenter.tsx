@@ -39,23 +39,25 @@ export default function BranchNotificationCenter({ branchId }: BranchNotificatio
   const loadNotifications = async () => {
     try {
       if (!branchId) {
-        console.warn('Cannot load notifications: branchId is not set');
+        console.warn('🔔 Cannot load notifications: branchId is not set');
         return;
       }
 
       // Validate branchId is a non-empty string
       if (typeof branchId !== 'string' || branchId.trim().length === 0) {
-        console.error('Invalid branchId format:', branchId);
+        console.error('🔔 Invalid branchId format:', branchId);
         return;
       }
 
       const url = `/api/branch/notifications/list?branch_id=${encodeURIComponent(branchId)}&unreadOnly=false&limit=100`;
+      console.log('🔔 Fetching notifications from:', url);
       
       const response = await fetch(url);
+      console.log('🔔 API Response status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Failed to load notifications:', {
+        console.error('🔔 Failed to load notifications:', {
           status: response.status,
           error: errorData.error,
         });
@@ -63,9 +65,10 @@ export default function BranchNotificationCenter({ branchId }: BranchNotificatio
       }
 
       const data = await response.json();
+      console.log('🔔 API Response data:', data);
       
       if (!data.success || !Array.isArray(data.data)) {
-        console.error('Invalid API response format:', data);
+        console.error('🔔 Invalid API response format:', data);
         return;
       }
 
@@ -74,11 +77,13 @@ export default function BranchNotificationCenter({ branchId }: BranchNotificatio
         metadata: typeof n.metadata === 'string' ? JSON.parse(n.metadata) : n.metadata,
       }));
 
+      console.log('🔔 Parsed notifications:', allNotifications);
       setNotifications(allNotifications);
       const unread = allNotifications.filter((n: Notification) => !n.is_read).length;
       setUnreadCount(unread);
+      console.log('🔔 Unread count:', unread, 'Total:', allNotifications.length);
     } catch (err) {
-      console.error('Error loading branch notifications:', {
+      console.error('🔔 Error loading branch notifications:', {
         error: (err as any)?.message,
         branchId,
       });
