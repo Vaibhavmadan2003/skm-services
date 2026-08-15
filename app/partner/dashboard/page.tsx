@@ -36,6 +36,7 @@ export default function DashboardPage() {
       try {
         // Check both localStorage (for all users)
         const userData = localStorage.getItem('userData');
+        const branchDataStr = localStorage.getItem('branchData');
         const token = localStorage.getItem('adminToken');
         
         if (!userData || !token) {
@@ -47,7 +48,18 @@ export default function DashboardPage() {
 
         try {
           const user = JSON.parse(userData);
-          const branchId = user.branchId || user.branch_id;
+          let branchId = null;
+          
+          // For branch admin, get branchId from branchData (preferred source)
+          if (branchDataStr) {
+            const branchData = JSON.parse(branchDataStr);
+            branchId = branchData.id;
+            console.log('✅ Got branchId from branchData:', branchId);
+          } else {
+            // Fallback to userData
+            branchId = user.branchId || user.branch_id;
+            console.log('✅ Got branchId from userData:', branchId);
+          }
           
           if (!branchId) {
             console.log('❌ No branch ID found, redirecting to login');
