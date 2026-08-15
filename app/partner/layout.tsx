@@ -103,7 +103,9 @@ export default function PartnerLayout({ children }: LayoutProps) {
         if (branch?.logo_url) {
           console.log('✅ Setting branchLogo:', branch.logo_url);
           setBranchLogo(branch.logo_url);
-          localStorage.setItem('branchLogo', branch.logo_url);
+          // Don't save separately - it's already in branchData
+        } else {
+          console.log('⚠️ No logo_url in branch data');
         }
         setIsLoading(false);
         console.log('✅ Auth check complete');
@@ -119,32 +121,9 @@ export default function PartnerLayout({ children }: LayoutProps) {
     checkAuth();
   }, [isHydrated]);
 
-  // Listen for logo updates from settings page
-  useEffect(() => {
-    const handleStorageChange = () => {
-      try {
-        const branchData = sessionStorage.getItem('branchData');
-        const branch = branchData ? JSON.parse(branchData) : null;
-        
-        if (branch?.logo_url) {
-          setBranchLogo(branch.logo_url);
-        }
-      } catch (error) {
-        console.error('Storage listener error:', error);
-      }
-    };
-
-    // Listen for storage changes
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also listen for custom event from settings page
-    window.addEventListener('branchLogoUpdated', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('branchLogoUpdated', handleStorageChange);
-    };
-  }, []);
+  // Logo is persisted via branchData in localStorage - no separate storage needed.
+  // The initial auth check effect reads logo_url from branchData and sets it in state.
+  // When page refreshes, branchData persists in localStorage, so logo displays correctly.
 
   const handleLogout = async () => {
     try {
