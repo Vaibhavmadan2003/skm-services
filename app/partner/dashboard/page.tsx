@@ -31,15 +31,25 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const userData = sessionStorage.getItem('userData');
+        // Check both localStorage (super admin) and sessionStorage (branch admin)
+        const userData = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+        
         if (!userData) {
-          setError('User session not found');
+          setError('User session not found. Please log in again.');
           setLoading(false);
           return;
         }
 
         const user = JSON.parse(userData);
-        const response = await fetch(`/api/partner/dashboard/stats?branch_id=${user.branchId}`);
+        const branchId = user.branchId || user.branch_id;
+        
+        if (!branchId) {
+          setError('Branch information not found');
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch(`/api/partner/dashboard/stats?branch_id=${branchId}`);
         const data = await response.json();
 
         if (data.success) {

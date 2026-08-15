@@ -209,17 +209,20 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Store session info in localStorage (for persistence across pages)
+      // Store session info in localStorage (for super admin - persistence across page reloads)
+      // OR sessionStorage (for branch admin - session only)
+      const storageType = accountType === 'super_admin' ? localStorage : sessionStorage;
+      
       if (data.token) {
-        localStorage.setItem('adminToken', data.token);
-        localStorage.setItem('userRole', accountType);
-        localStorage.setItem('userData', JSON.stringify(data.user || {}));
+        storageType.setItem('adminToken', data.token);
+        storageType.setItem('userRole', accountType);
+        storageType.setItem('userData', JSON.stringify(data.user || {}));
         if (data.branch) {
-          localStorage.setItem('branchData', JSON.stringify(data.branch));
+          storageType.setItem('branchData', JSON.stringify(data.branch));
         }
       }
       
-      // Store role preference in localStorage
+      // Store role preference in localStorage (always persistent)
       if (rememberMe) {
         localStorage.setItem('rememberEmail', email);
       }
