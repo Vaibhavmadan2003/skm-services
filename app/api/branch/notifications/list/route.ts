@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { selectFrom } from '@/lib/supabase-helpers';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,45 +16,58 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get branch details using helper
-    const branchResult = await selectFrom('branches', 'email');
-    const branches = (branchResult.data as any) || [];
-    const branchData = branches.find((b: any) => b.id === branchId);
+    // Get branch details using service role to bypass RLS
+    const branchClient = supabaseAdmin as any;
+    const branchResult = await branchClient
+      .from('branches')
+      .select('id, email')
+      .eq('id', branchId)
+      .single();
 
-    if (!branchData?.email) {
-      console.error('Error fetching branch email');
+    if (branchResult.error || !branchResult.data?.email) {
+      console.error('Error fetching branch:', branchResult.error);
       return NextResponse.json(
         { error: 'Branch not found or no email assigned' },
         { status: 404 }
       );
     }
 
-    // Get notifications using helper
-    const result = await selectFrom('notifications', '*');
-    let data = (result.data as any) || [];
+    // Get notifications using service role to bypass RLS
+    const notifClient = supabaseAdmin as any;
+    let query = notifClient
+      .from('notifications')
+      .select('*')
+      .eq('branch_id', branchId)
+      .in('type', ['work_assignment', 'booking_assignment', 'booking_cancelled']);
 
-    // Filter by branch_id and notification types
-    data = data.filter((n: any) => 
-      n.branch_id === branchId && 
-      ['work_assignment', 'booking_assignment', 'booking_cancelled'].includes(n.type)
-    );
-
-    // Filter by unread if needed
     if (unreadOnly) {
-      data = data.filter((n: any) => n.is_read === false);
+      query = query.eq('is_read', false);
     }
 
-    // Sort by created_at descending
-    data = data.sort((a: any, b: any) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    const notifResult = await query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    const count = data.length;
+    if (notifResult.error) {
+      console.error('Error fetching notifications:', notifResult.error);
+      return NextResponse.json(
+        { error: 'Failed to fetch notifications' },
+        { status: 500 }
+      );
+    }
 
-    // Apply pagination
-    data = data.slice(offset, offset + limit);
+    const data = (notifResult.data as any) || [];
 
-    console.log(`Branch ${branchId} notifications: ${data.length || 0} loaded (types: work_assignment, booking_assignment, booking_cancelled)`);
+    // Get total count
+    const countResult = await notifClient
+      .from('notifications')
+      .select('id', { count: 'exact' })
+      .eq('branch_id', branchId)
+      .in('type', ['work_assignment', 'booking_assignment', 'booking_cancelled']);
+
+    const count = countResult.count || 0;
+
+    console.log(`✅ Branch ${branchId} notifications: ${data.length} loaded (total: ${count})`);
 
     return NextResponse.json({
       success: true,
