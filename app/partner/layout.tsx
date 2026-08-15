@@ -3,7 +3,6 @@
 import React, { useState, ReactNode, useEffect } from 'react';
 import { Menu, X, LogOut, LayoutGrid, Calendar, Wrench, Users, Truck, CreditCard, Settings } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import BranchNotificationCenter from '@/app/admin/components/BranchNotificationCenter';
 
 interface LayoutProps {
@@ -17,9 +16,16 @@ export default function PartnerLayout({ children }: LayoutProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [branchLogo, setBranchLogo] = useState<string | null>(null);
   const [branchId, setBranchId] = useState<string | null>(null);
-  const router = useRouter();
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Hydration - wait for client to be ready
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
+    if (!isHydrated) return;
+
     // Check authentication from sessionStorage (set during login)
     const checkAuth = () => {
       try {
@@ -32,13 +38,15 @@ export default function PartnerLayout({ children }: LayoutProps) {
           hasToken: !!adminToken,
           hasUserData: !!userData,
           userRole,
-          isLoading
+          isHydrated
         });
 
         if (!adminToken || !userData || userRole !== 'branch_admin') {
           console.log('❌ Auth failed, redirecting to login');
           setIsAuthenticated(false);
-          router.push('/admin/login');
+          setIsLoading(false);
+          // Use window.location for hard redirect
+          window.location.href = '/admin/login';
           return;
         }
 
@@ -59,17 +67,17 @@ export default function PartnerLayout({ children }: LayoutProps) {
           setBranchLogo(branch.logo_url);
           sessionStorage.setItem('branchLogo', branch.logo_url);
         }
+        setIsLoading(false);
       } catch (error) {
         console.error('Auth check error:', error);
         setIsAuthenticated(false);
-        router.push('/admin/login');
-      } finally {
         setIsLoading(false);
+        window.location.href = '/admin/login';
       }
     };
 
     checkAuth();
-  }, []);
+  }, [isHydrated]);
 
   // Listen for logo updates from settings page
   useEffect(() => {
@@ -101,14 +109,14 @@ export default function PartnerLayout({ children }: LayoutProps) {
   const handleLogout = async () => {
     try {
       // Clear sessionStorage
-      sessionStorage.removeItem('authToken');
+      sessionStorage.removeItem('adminToken');
       sessionStorage.removeItem('userRole');
       sessionStorage.removeItem('userData');
       sessionStorage.removeItem('branchData');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      router.push('/admin/login');
+      window.location.href = '/admin/login';
     }
   };
 
