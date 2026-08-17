@@ -235,7 +235,7 @@ export default function BookingsPage() {
             <tbody>
               {filteredBookings.length > 0 ? (
                 filteredBookings.map((booking) => {
-                  const statusInfo = statusColors[booking.status];
+                  const statusInfo = statusColors[booking.status as keyof typeof statusColors];
                   return (
                     <tr key={booking.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background-color 0.2s ease' }}
                       onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
@@ -257,10 +257,10 @@ export default function BookingsPage() {
                           borderRadius: '6px',
                           fontSize: '12px',
                           fontWeight: '600',
-                          background: statusColors[booking.status]?.bg || '#f3f4f6',
-                          color: statusColors[booking.status]?.text || '#6b7280'
+                          background: statusInfo?.bg || '#f3f4f6',
+                          color: statusInfo?.text || '#6b7280'
                         }}>
-                          {statusColors[booking.status]?.label || booking.status}
+                          {statusInfo?.label || booking.status || 'Unknown'}
                         </span>
                       </td>
                       <td style={{ padding: '16px', fontSize: '13px', color: '#6b7280' }}>

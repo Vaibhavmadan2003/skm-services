@@ -17,7 +17,8 @@ export default function BookingStatusBadge({ status, size = 'md' }: BookingStatu
     cancelled: { label: 'Cancelled', bg: '#fee2e2', text: '#dc2626' },
   };
 
-  const config = statusConfig[status];
+  // Fallback for unknown status
+  const config = statusConfig[status] || { label: status || 'Unknown', bg: '#f3f4f6', text: '#6b7280' };
 
   return (
     <span
