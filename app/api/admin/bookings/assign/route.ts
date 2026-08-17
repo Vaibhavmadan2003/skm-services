@@ -66,10 +66,13 @@ async function sendBookingAssignmentEmail(
  * Assign a booking to a branch
  */
 export async function POST(request: NextRequest) {
+  console.log('🔥🔥🔥 [ASSIGN] ROUTE HANDLER STARTED 🔥🔥🔥');
   try {
     console.log('📍 [ASSIGN] POST /api/admin/bookings/assign called');
     
     const body = await request.json();
+    console.log('📍 [ASSIGN] Body parsed successfully');
+    
     const {
       bookingId,
       branchId,
@@ -226,6 +229,12 @@ export async function POST(request: NextRequest) {
       data: updatedBooking && updatedBooking.length > 0 ? updatedBooking[0] : { bookingId, branchId, status: 'assigned' },
     });
   } catch (error) {
+    console.error('❌❌❌ [ASSIGN] EXCEPTION IN ROUTE HANDLER ❌❌❌');
+    console.error('Error object:', error);
+    console.error('Error message:', (error as any)?.message);
+    console.error('Error stack:', (error as any)?.stack);
+    console.error('Error type:', typeof error);
+    console.error('Full error:', JSON.stringify(error));
     console.error('❌ [ASSIGN] Error in POST /api/admin/bookings/assign:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
