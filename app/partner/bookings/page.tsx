@@ -31,19 +31,32 @@ export default function BookingsPage() {
     try {
       setIsLoading(true);
       
-      // Get branch ID from sessionStorage (set during login)
-      const userData = sessionStorage.getItem('userData');
+      // Get branch ID from localStorage (set during login)
+      const userData = localStorage.getItem('userData');
+      const branchDataStr = localStorage.getItem('branchData');
+      
       if (!userData) {
-        console.error('User session not found');
+        console.error('[Partner Bookings] User session not found');
         setIsLoading(false);
         return;
       }
       
-      const user = JSON.parse(userData);
-      const branchId = user.branchId;
+      let branchId = null;
+      
+      // For branch admin, get branchId from branchData (preferred source)
+      if (branchDataStr) {
+        const branchData = JSON.parse(branchDataStr);
+        branchId = branchData.id;
+        console.log('[Partner Bookings] Got branchId from branchData:', branchId);
+      } else {
+        // Fallback to userData
+        const user = JSON.parse(userData);
+        branchId = user.branchId || user.branch_id;
+        console.log('[Partner Bookings] Got branchId from userData:', branchId);
+      }
       
       if (!branchId) {
-        console.error('Branch ID not found in session');
+        console.error('[Partner Bookings] Branch ID not found');
         setIsLoading(false);
         return;
       }
@@ -51,17 +64,16 @@ export default function BookingsPage() {
       console.log('[Partner Bookings] Fetching for branch:', branchId);
       
       // Fetch ALL bookings assigned to this branch from DATABASE
-      // sessionStorage only provides branchId context, actual data comes from API/Database
       const response = await fetch(`/api/partner/bookings?branch_id=${branchId}`);
       if (response.ok) {
         const data = await response.json();
         console.log('[Partner Bookings] Fetched:', data.bookings?.length || 0, 'bookings');
         setBookings(data.bookings || []);
       } else {
-        console.error('Failed to fetch bookings:', response.statusText);
+        console.error('[Partner Bookings] Failed to fetch bookings:', response.statusText);
       }
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      console.error('[Partner Bookings] Error fetching bookings:', error);
     } finally {
       setIsLoading(false);
     }
