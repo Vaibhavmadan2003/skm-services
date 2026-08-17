@@ -10,7 +10,7 @@ interface Booking {
   service?: string;
   service_name?: string;
   service_category?: string;
-  status: 'pending' | 'assigned' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'pending' | 'assigned' | 'accepted' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
   scheduled_date?: string;
   scheduled_datetime?: string;
   total_price?: number;
@@ -71,6 +71,7 @@ export default function BookingsPage() {
     'pending': { bg: '#fef3c7', text: '#92400e', label: 'Pending' },
     'assigned': { bg: '#dbeafe', text: '#1e40af', label: 'Assigned' },
     'accepted': { bg: '#dbeafe', text: '#1e40af', label: 'Accepted' },
+    'confirmed': { bg: '#d1fae5', text: '#059669', label: 'Confirmed' },
     'in_progress': { bg: '#fecdd3', text: '#991b1b', label: 'In Progress' },
     'completed': { bg: '#d1fae5', text: '#065f46', label: 'Completed' },
     'cancelled': { bg: '#fee2e2', text: '#991b1b', label: 'Cancelled' }
@@ -162,6 +163,7 @@ export default function BookingsPage() {
           <option value="pending">Pending</option>
           <option value="assigned">Assigned</option>
           <option value="accepted">Accepted</option>
+          <option value="confirmed">Confirmed</option>
           <option value="in_progress">In Progress</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
