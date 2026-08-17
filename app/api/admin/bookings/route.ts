@@ -227,7 +227,8 @@ export async function GET(request: NextRequest) {
       const searchLower = search.toLowerCase();
       filteredData = filteredData.filter((booking: any) => {
         const bookingNumber = booking.booking_number?.toLowerCase() || '';
-        const userId = booking.customers?.user_id || '';
+        const customer = customersMap[booking.customer_id];
+        const userId = customer?.user_id || booking.customer_id || '';
         const authUser = authUsers[userId] || {};
         const customerPhone = authUser.user_metadata?.phone?.toLowerCase() || '';
         const customerName = (authUser.user_metadata?.full_name || '').toLowerCase();

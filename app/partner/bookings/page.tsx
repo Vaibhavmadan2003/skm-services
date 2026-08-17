@@ -161,6 +161,7 @@ export default function BookingsPage() {
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
           <option value="assigned">Assigned</option>
+          <option value="accepted">Accepted</option>
           <option value="in_progress">In Progress</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
