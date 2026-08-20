@@ -63,7 +63,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
     <>
       {/* Sidebar */}
       <div style={{
-        width: isOpen ? '260px' : '72px',
+        width: isOpen ? '280px' : '72px',
         background: 'white',
         borderRight: '1px solid #e5e7eb',
         transition: 'width 0.3s ease',
@@ -112,9 +112,9 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
                   {businessInitial}
                 </div>
               )}
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '14px', fontWeight: '700', color: '#111827' }}>
-                  {settings.general.businessName.substring(0, 10)}
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: '14px', fontWeight: '700', color: '#111827', wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: '1.2' }}>
+                  {settings.general.businessName}
                 </span>
                 <span style={{ fontSize: '11px', color: '#9ca3af' }}>Admin</span>
               </div>
