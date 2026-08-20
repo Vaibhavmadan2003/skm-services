@@ -220,7 +220,7 @@ export default function PartnerLayout({ children }: LayoutProps) {
             )}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h2 style={{ fontSize: '14px', fontWeight: '700', color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: '700', color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: '1.3' }}>
               {branchName}
             </h2>
             <p style={{ fontSize: '12px', color: '#6b7280', margin: '2px 0 0 0' }}>
