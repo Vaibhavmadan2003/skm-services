@@ -176,7 +176,7 @@ export default function PartnerLayout({ children }: LayoutProps) {
           background: 'white',
           borderRight: '1px solid #e5e7eb',
           transition: 'all 0.3s ease',
-          width: sidebarOpen ? '280px' : '0px',
+          width: sidebarOpen ? '300px' : '0px',
           overflow: 'hidden',
           zIndex: 40,
           boxShadow: sidebarOpen ? '0 10px 25px rgba(0,0,0,0.08)' : 'none'
@@ -271,7 +271,7 @@ export default function PartnerLayout({ children }: LayoutProps) {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '280px' : '0px', transition: 'all 0.3s ease' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '300px' : '0px', transition: 'all 0.3s ease' }}>
         {/* Header */}
         <header style={{
           background: 'white',
