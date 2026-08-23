@@ -2,6 +2,7 @@
 
 import React from 'react';
 import {
+  Box,
   Table,
   TableBody,
   TableCell,
@@ -9,16 +10,14 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Chip,
   CircularProgress,
-  Box,
-  Button,
-  Stack,
   Typography,
+  Button,
+  Pagination,
   Skeleton,
 } from '@mui/material';
-import { format } from 'date-fns';
-import TicketStatusBadge from './TicketStatusBadge';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface Ticket {
   id: string;
@@ -35,76 +34,77 @@ interface Ticket {
 interface TicketsListProps {
   tickets: Ticket[];
   isLoading: boolean;
-  onTicketClick?: (ticket: Ticket) => void;
   currentPage: number;
   totalCount: number;
   pageSize: number;
   onPageChange: (page: number) => void;
 }
 
-const sourceLabels: Record<string, string> = {
-  customer_app: 'Customer App',
-  branch_admin: 'Branch Admin',
+const getStatusColor = (status: string): 'default' | 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success' => {
+  switch (status) {
+    case 'open':
+      return 'error';
+    case 'in_progress':
+      return 'warning';
+    case 'resolved':
+      return 'success';
+    case 'closed':
+      return 'default';
+    default:
+      return 'default';
+  }
 };
 
-const categoryLabels: Record<string, string> = {
-  booking: 'Booking',
-  payment: 'Payment',
-  technical: 'Technical',
-  other: 'Other',
+const getSourceLabel = (source: string) => {
+  return source === 'customer_app' ? 'Customer App' : 'Branch Admin';
+};
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 
 export default function TicketsList({
   tickets,
   isLoading,
-  onTicketClick,
   currentPage,
   totalCount,
   pageSize,
   onPageChange,
 }: TicketsListProps) {
+  const router = useRouter();
+
   const totalPages = Math.ceil(totalCount / pageSize);
+
+  const handleTicketClick = (ticketId: string) => {
+    router.push(`/admin/tickets/${ticketId}`);
+  };
 
   if (isLoading) {
     return (
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: '#f9fafb' }}>
-              <TableCell sx={{ fontWeight: '600' }}>Ticket #</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>User Name</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Email</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Source</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Category</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Created</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {[...Array(5)].map((_, idx) => (
-              <TableRow key={idx}>
-                <TableCell><Skeleton width="100px" /></TableCell>
-                <TableCell><Skeleton width="150px" /></TableCell>
-                <TableCell><Skeleton width="180px" /></TableCell>
-                <TableCell><Skeleton width="120px" /></TableCell>
-                <TableCell><Skeleton width="100px" /></TableCell>
-                <TableCell><Skeleton width="100px" /></TableCell>
-                <TableCell><Skeleton width="100px" /></TableCell>
-                <TableCell><Skeleton width="80px" /></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Paper sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} height={60} variant="rectangular" />
+          ))}
+        </Box>
+      </Paper>
     );
   }
 
   if (tickets.length === 0) {
     return (
       <Paper sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="body1" color="textSecondary">
-          No support tickets found.
+        <Typography variant="h6" color="textSecondary">
+          No tickets found
+        </Typography>
+        <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+          Try adjusting your filters or check back later
         </Typography>
       </Paper>
     );
@@ -115,68 +115,76 @@ export default function TicketsList({
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#f9fafb' }}>
-              <TableCell sx={{ fontWeight: '600' }}>Ticket #</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>User Name</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Email</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Source</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Category</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Created</TableCell>
-              <TableCell sx={{ fontWeight: '600' }}>Action</TableCell>
+            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+              <TableCell sx={{ fontWeight: 'bold' }}>Ticket #</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Customer</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Category</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Source</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Created</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }} align="right">
+                Action
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {tickets.map((ticket) => (
               <TableRow
                 key={ticket.id}
+                hover
                 sx={{
-                  '&:hover': {
-                    backgroundColor: '#f9fafb',
-                  },
                   cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: '#f9f9f9',
+                  },
                 }}
               >
-                <TableCell sx={{ fontWeight: '600', color: '#0052CC' }}>
+                <TableCell sx={{ fontWeight: 600, color: '#1976d2' }}>
                   {ticket.ticket_number}
                 </TableCell>
-                <TableCell>{ticket.user_name}</TableCell>
-                <TableCell sx={{ maxWidth: '250px', wordBreak: 'break-word' }}>
-                  {ticket.user_email}
-                </TableCell>
                 <TableCell>
-                  <Box
-                    sx={{
-                      display: 'inline-block',
-                      px: 2,
-                      py: 0.5,
-                      backgroundColor:
-                        ticket.source === 'customer_app' ? '#E3F2FD' : '#FFF3E0',
-                      color:
-                        ticket.source === 'customer_app' ? '#1565C0' : '#E65100',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                    }}
-                  >
-                    {sourceLabels[ticket.source]}
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {ticket.user_name}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      {ticket.user_email}
+                    </Typography>
                   </Box>
                 </TableCell>
-                <TableCell>{categoryLabels[ticket.issue_category]}</TableCell>
                 <TableCell>
-                  <TicketStatusBadge status={ticket.status} />
+                  <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
+                    {ticket.issue_category.replace('_', ' ')}
+                  </Typography>
                 </TableCell>
-                <TableCell>{format(new Date(ticket.created_at), 'MMM dd, yyyy')}</TableCell>
                 <TableCell>
-                  <Link href={`/admin/tickets/${ticket.id}`}>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      sx={{ textTransform: 'none' }}
-                    >
-                      View
-                    </Button>
-                  </Link>
+                  <Chip
+                    label={getSourceLabel(ticket.source)}
+                    size="small"
+                    variant="outlined"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={ticket.status.replace('_', ' ').toUpperCase()}
+                    size="small"
+                    color={getStatusColor(ticket.status)}
+                    variant="filled"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Typography variant="caption">
+                    {formatDate(ticket.created_at)}
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleTicketClick(ticket.id)}
+                  >
+                    View
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -185,30 +193,13 @@ export default function TicketsList({
       </TableContainer>
 
       {/* Pagination */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
-        <Typography variant="body2" color="textSecondary">
-          Page {currentPage} of {totalPages} • {totalCount} total tickets
-        </Typography>
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant="outlined"
-            size="small"
-            disabled={currentPage === 1}
-            onClick={() => onPageChange(currentPage - 1)}
-            sx={{ textTransform: 'none' }}
-          >
-            ← Previous
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            disabled={currentPage === totalPages}
-            onClick={() => onPageChange(currentPage + 1)}
-            sx={{ textTransform: 'none' }}
-          >
-            Next →
-          </Button>
-        </Stack>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+        <Pagination
+          count={totalPages}
+          page={currentPage}
+          onChange={(_, page) => onPageChange(page)}
+          color="primary"
+        />
       </Box>
     </Box>
   );

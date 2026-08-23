@@ -1,26 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
-  Chip,
   Button,
+  Chip,
   TextField,
-  Stack,
-  Typography,
   Paper,
+  Typography,
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 
-interface Filters {
-  status?: string[];
-  source?: string[];
-  search?: string;
-}
-
 interface TicketFiltersProps {
-  filters: Filters;
-  onFilterChange: (filters: Filters) => void;
+  filters: {
+    status?: string[];
+    source?: string[];
+    search?: string;
+  };
+  onFilterChange: (filters: any) => void;
 }
 
 const STATUS_OPTIONS = [
@@ -36,78 +33,71 @@ const SOURCE_OPTIONS = [
 ];
 
 export default function TicketFilters({ filters, onFilterChange }: TicketFiltersProps) {
-  const [searchValue, setSearchValue] = React.useState(filters.search || '');
+  const [search, setSearch] = useState(filters.search || '');
+  const [selectedStatus, setSelectedStatus] = useState<string[]>(filters.status || []);
+  const [selectedSource, setSelectedSource] = useState<string[]>(filters.source || []);
 
   const handleStatusToggle = (status: string) => {
-    const currentStatuses = filters.status || [];
-    const newStatuses = currentStatuses.includes(status)
-      ? currentStatuses.filter(s => s !== status)
-      : [...currentStatuses, status];
-
+    const updated = selectedStatus.includes(status)
+      ? selectedStatus.filter((s) => s !== status)
+      : [...selectedStatus, status];
+    setSelectedStatus(updated);
     onFilterChange({
       ...filters,
-      status: newStatuses.length > 0 ? newStatuses : undefined,
+      status: updated,
     });
   };
 
   const handleSourceToggle = (source: string) => {
-    const currentSources = filters.source || [];
-    const newSources = currentSources.includes(source)
-      ? currentSources.filter(s => s !== source)
-      : [...currentSources, source];
-
+    const updated = selectedSource.includes(source)
+      ? selectedSource.filter((s) => s !== source)
+      : [...selectedSource, source];
+    setSelectedSource(updated);
     onFilterChange({
       ...filters,
-      source: newSources.length > 0 ? newSources : undefined,
+      source: updated,
     });
   };
 
-  const handleSearchChange = (value: string) => {
-    setSearchValue(value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearch(value);
     onFilterChange({
       ...filters,
-      search: value || undefined,
+      search: value,
     });
   };
 
-  const handleResetFilters = () => {
-    setSearchValue('');
+  const handleReset = () => {
+    setSearch('');
+    setSelectedStatus([]);
+    setSelectedSource([]);
     onFilterChange({
-      status: undefined,
-      source: undefined,
-      search: undefined,
+      status: [],
+      source: [],
+      search: '',
     });
   };
-
-  const hasActiveFilters = (filters.status?.length || 0) > 0 || 
-                           (filters.source?.length || 0) > 0 || 
-                           !!filters.search;
 
   return (
-    <Paper sx={{ p: 3, mb: 3, backgroundColor: '#fafafa' }}>
-      <Stack spacing={3}>
-        {/* Search */}
-        <Box>
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: '600' }}>
-            Search
-          </Typography>
-          <TextField
-            placeholder="Search by ticket #, name, or email..."
-            value={searchValue}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            size="small"
-            fullWidth
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: 'white',
-              },
-            }}
-          />
-        </Box>
+    <Paper sx={{ p: 3, mb: 3 }}>
+      {/* Search */}
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          fullWidth
+          placeholder="Search by ticket number, name, or email..."
+          value={search}
+          onChange={handleSearchChange}
+          variant="outlined"
+          size="small"
+        />
+      </Box>
 
+      {/* Status and Source Filters */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
         {/* Status Filter */}
         <Box>
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: '600' }}>
+          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
             Status
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -116,9 +106,8 @@ export default function TicketFilters({ filters, onFilterChange }: TicketFilters
                 key={status.value}
                 label={status.label}
                 onClick={() => handleStatusToggle(status.value)}
-                variant={(filters.status?.includes(status.value)) ? 'filled' : 'outlined'}
-                color={(filters.status?.includes(status.value)) ? 'primary' : 'default'}
-                size="small"
+                color={selectedStatus.includes(status.value) ? 'primary' : 'default'}
+                variant={selectedStatus.includes(status.value) ? 'filled' : 'outlined'}
               />
             ))}
           </Box>
@@ -126,7 +115,7 @@ export default function TicketFilters({ filters, onFilterChange }: TicketFilters
 
         {/* Source Filter */}
         <Box>
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: '600' }}>
+          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
             Source
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -135,29 +124,23 @@ export default function TicketFilters({ filters, onFilterChange }: TicketFilters
                 key={source.value}
                 label={source.label}
                 onClick={() => handleSourceToggle(source.value)}
-                variant={(filters.source?.includes(source.value)) ? 'filled' : 'outlined'}
-                color={(filters.source?.includes(source.value)) ? 'primary' : 'default'}
-                size="small"
+                color={selectedSource.includes(source.value) ? 'primary' : 'default'}
+                variant={selectedSource.includes(source.value) ? 'filled' : 'outlined'}
               />
             ))}
           </Box>
         </Box>
+      </Box>
 
-        {/* Reset Button */}
-        {hasActiveFilters && (
-          <Box>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<ClearIcon />}
-              onClick={handleResetFilters}
-              sx={{ textTransform: 'none' }}
-            >
-              Reset Filters
-            </Button>
-          </Box>
-        )}
-      </Stack>
+      {/* Reset Button */}
+      <Button
+        startIcon={<ClearIcon />}
+        onClick={handleReset}
+        variant="outlined"
+        color="inherit"
+      >
+        Clear Filters
+      </Button>
     </Paper>
   );
 }
