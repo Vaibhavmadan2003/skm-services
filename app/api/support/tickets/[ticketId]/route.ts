@@ -23,11 +23,11 @@ export async function GET(
     }
 
     // Fetch ticket
-    const { data: ticket, error: queryError } = await supabaseAdmin
+    const { data: ticket, error: queryError } = await (supabaseAdmin
       .from('support_tickets')
       .select('*')
       .eq('id', ticketId)
-      .single();
+      .single() as any);
 
     if (queryError || !ticket) {
       console.error('[API /support/tickets/[ticketId] GET] Ticket not found:', queryError);
@@ -66,91 +66,98 @@ export async function GET(
   }
 }
 
-// TODO: Fix TypeScript error with Record<string, any> type in update call
-// export async function PATCH(
-//   request: NextRequest,
-//   { params }: { params: Promise<{ ticketId: string }> }
-// ) {
-//   try {
-//     const { ticketId } = await params;
-//     const { status, admin_notes } = await request.json();
+/**
+ * PATCH /api/support/tickets/[ticketId]
+ * Update a support ticket (super admin only)
+ * 
+ * Request body:
+ * - status: 'open' | 'in_progress' | 'resolved' | 'closed'
+ * - admin_notes: string (optional)
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ ticketId: string }> }
+) {
+  try {
+    const { ticketId } = await params;
+    const { status, admin_notes } = await request.json();
 
-//     console.log('[API /support/tickets/[ticketId] PATCH] Request:', {
-//       ticketId,
-//       status,
-//       hasNotes: !!admin_notes,
-//     });
+    console.log('[API /support/tickets/[ticketId] PATCH] Request:', {
+      ticketId,
+      status,
+      hasNotes: !!admin_notes,
+    });
 
-//     // Get authenticated user
-//     const { data: { user }, error: authError } = await supabase.auth.getUser();
-//     if (authError || !user) {
-//       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-//     }
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-//     // Check if user is super admin
-//     const { data: userData, error: userError } = await supabaseAdmin
-//       .from('users')
-//       .select('role')
-//       .eq('id', user.id)
-//       .single();
+    // Check if user is super admin
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
 
-//     if (userError || (userData as any)?.role !== 'super_admin') {
-//       console.log('[API /support/tickets/[ticketId] PATCH] Forbidden - not super admin');
-//       return NextResponse.json({ error: 'Forbidden - super admin only' }, { status: 403 });
-//     }
+    if (userError || (userData as any)?.role !== 'super_admin') {
+      console.log('[API /support/tickets/[ticketId] PATCH] Forbidden - not super admin');
+      return NextResponse.json({ error: 'Forbidden - super admin only' }, { status: 403 });
+    }
 
-//     // Validate status
-//     if (!status || !['open', 'in_progress', 'resolved', 'closed'].includes(status)) {
-//       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
-//     }
+    // Validate status
+    if (!status || !['open', 'in_progress', 'resolved', 'closed'].includes(status)) {
+      return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+    }
 
-//     // Fetch ticket to verify it exists
-//     const { data: ticket, error: fetchError } = await supabaseAdmin
-//       .from('support_tickets')
-//       .select('*')
-//       .eq('id', ticketId)
-//       .single();
+    // Fetch ticket to verify it exists
+    const { data: ticket, error: fetchError } = await (supabaseAdmin
+      .from('support_tickets')
+      .select('*')
+      .eq('id', ticketId)
+      .single() as any);
 
-//     if (fetchError || !ticket) {
-//       console.error('[API /support/tickets/[ticketId] PATCH] Ticket not found:', fetchError);
-//       return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
-//     }
+    if (fetchError || !ticket) {
+      console.error('[API /support/tickets/[ticketId] PATCH] Ticket not found:', fetchError);
+      return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
+    }
 
-//     // Update ticket
-//     const updateData: Record<string, any> = {
-//       status,
-//       updated_at: new Date().toISOString(),
-//     };
+    // Build update object with proper typing
+    const updateData = {
+      status,
+      updated_at: new Date().toISOString(),
+      ...(admin_notes !== undefined && { admin_notes }),
+    };
 
-//     if (admin_notes !== undefined) {
-//       updateData.admin_notes = admin_notes;
-//     }
+    // Update ticket with full type casting to bypass strict Supabase types
+    const updateResult = await (supabaseAdmin as any)
+      .from('support_tickets')
+      .update(updateData)
+      .eq('id', ticketId)
+      .select('*')
+      .single();
+    
+    const { data: updatedTicket, error: updateError } = updateResult;
 
-//     const { data: updatedTicket, error: updateError } = await (supabaseAdmin
-//       .from('support_tickets')
-//       .update(updateData)
-//       .eq('id', ticketId)
-//       .select('*')
-//       .single() as any);
+    if (updateError) {
+      console.error('[API /support/tickets/[ticketId] PATCH] Update error:', updateError);
+      return NextResponse.json({ error: 'Failed to update ticket' }, { status: 500 });
+    }
 
-//     if (updateError) {
-//       console.error('[API /support/tickets/[ticketId] PATCH] Update error:', updateError);
-//       return NextResponse.json({ error: 'Failed to update ticket' }, { status: 500 });
-//     }
+    console.log('[API /support/tickets/[ticketId] PATCH] Ticket updated:', {
+      id: updatedTicket?.id,
+      status: updatedTicket?.status,
+      updated_at: updatedTicket?.updated_at,
+    });
 
-//     console.log('[API /support/tickets/[ticketId] PATCH] Ticket updated:', {
-//       id: updatedTicket.id,
-//       status: updatedTicket.status,
-//       updated_at: updatedTicket.updated_at,
-//     });
-
-//     return NextResponse.json({
-//       success: true,
-//       ticket: updatedTicket,
-//       message: 'Ticket updated successfully',
-//     });
-//   } catch (error) {
-//     console.error('[API /support/tickets/[ticketId] PATCH] Error:', error);
-//     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-//   }
-// }
+    return NextResponse.json({
+      success: true,
+      ticket: updatedTicket,
+      message: 'Ticket updated successfully',
+    });
+  } catch (error) {
+    console.error('[API /support/tickets/[ticketId] PATCH] Error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
