@@ -28,10 +28,10 @@ export default function ServicesPage() {
     availability: 'available' as 'available' | 'unavailable'
   });
 
-  // Get branch ID from session
+  // Get branch ID from localStorage
   useEffect(() => {
     try {
-      const branchData = sessionStorage.getItem('branchData');
+      const branchData = localStorage.getItem('branchData');
       if (branchData) {
         const branch = JSON.parse(branchData);
         setBranchId(branch.id);

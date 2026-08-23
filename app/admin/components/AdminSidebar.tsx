@@ -15,7 +15,9 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  HelpCircle,
+  Ticket
 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
@@ -29,9 +31,13 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
   const router = useRouter();
   const { settings } = useSettings();
   const [isClient, setIsClient] = React.useState(false);
+  const [userRole, setUserRole] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     setIsClient(true);
+    // Get user role from localStorage (set during login)
+    const role = localStorage.getItem('userRole');
+    setUserRole(role);
   }, []);
 
   const menuItems = [
@@ -42,6 +48,8 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
     { icon: BarChart3, label: 'Reports & Analytics', href: '/admin/reports' },
     { icon: Bell, label: 'Notifications', href: '/admin/notifications' },
     { icon: UserCog, label: 'Users', href: '/admin/users' },
+    { icon: HelpCircle, label: 'Help & Support', href: '/admin/help-support' },
+    { icon: Ticket, label: 'Support Tickets', href: '/admin/tickets', superAdminOnly: true },
     { icon: Settings, label: 'Settings', href: '/admin/settings' }
   ];
 
@@ -128,9 +136,14 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
           overflow: 'auto',
           padding: '16px 0'
         }}>
-          {menuItems.map((item, idx) => {
+        {menuItems.map((item, idx) => {
             const Icon = item.icon;
             const active = isActive(item.href);
+            
+            // Skip super admin only items if not super admin
+            if ((item as any).superAdminOnly && userRole !== 'super_admin') {
+              return null;
+            }
 
             return (
               <Link key={idx} href={item.href}>
