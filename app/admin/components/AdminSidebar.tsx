@@ -121,7 +121,9 @@ export default function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
                 </div>
               )}
               <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: '14px', fontWeight: '700', color: '#111827', wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: '1.2' }}>
+                <span 
+                  suppressHydrationWarning
+                  style={{ fontSize: '14px', fontWeight: '700', color: '#111827', wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: '1.2' }}>
                   {settings.general.businessName}
                 </span>
                 <span style={{ fontSize: '11px', color: '#9ca3af' }}>Admin</span>

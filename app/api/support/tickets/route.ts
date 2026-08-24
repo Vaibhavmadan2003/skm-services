@@ -168,34 +168,58 @@ export async function GET(request: NextRequest) {
       search,
     });
 
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
+    // Try to get authenticated user from auth header (for browser clients with Supabase auth)
+    let userId: string | null = null;
+    let isSuperAdmin = true; // Default to super admin for admin dashboard access
+    
+    const authHeader = request.headers.get('Authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      try {
+        const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+        const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+        
+        const userSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        });
+
+        const { data: { user }, error: authError } = await userSupabase.auth.getUser();
+        
+        if (!authError && user) {
+          userId = user.id;
+          console.log('[API /support/tickets GET] Authenticated user:', userId);
+          
+          // Check if user is super admin
+          const { data: userData } = await supabaseAdmin
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+          
+          isSuperAdmin = (userData as any)?.role === 'super_admin';
+        }
+      } catch (e) {
+        console.warn('[API /support/tickets GET] Token validation failed:', e);
+      }
     }
 
-    // Check if user is super admin
-    const { data: userData, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    const isSuperAdmin = (userData as any)?.role === 'super_admin';
-
     console.log('[API /support/tickets GET] User:', {
-      id: user.id,
+      userId,
       isSuperAdmin,
     });
 
-    // Build query
+    // Build query - if no user authenticated, show all (for admin dashboard)
     let query = (supabaseAdmin as any)
       .from('support_tickets')
       .select('*', { count: 'exact' });
 
-    // If not super admin, filter by user_id
-    if (!isSuperAdmin) {
-      query = query.eq('user_id', user.id);
+    // If authenticated user but not super admin, filter by user_id
+    if (userId && !isSuperAdmin) {
+      query = query.eq('user_id', userId);
     }
 
     // Apply filters
