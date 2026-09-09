@@ -1,15 +1,13 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Language } from '@/app/lib/translations';
+import Link from 'next/link';
 
 interface FooterProps {
   language: Language;
 }
 
-/**
- * Footer Component - Clean & Minimal like JustClean
- */
 export const Footer: React.FC<FooterProps> = ({ language }) => {
   const currentYear = new Date().getFullYear();
 
@@ -104,7 +102,9 @@ export const Footer: React.FC<FooterProps> = ({ language }) => {
             © {currentYear} SKM Services. {language === 'en' ? 'All rights reserved.' : 'جميع الحقوق محفوظة.'}
           </p>
           <div style={{ display: 'flex', gap: '24px' }}>
-            <a href="#" style={{ fontSize: '13px', color: '#9ca3af', textDecoration: 'none' }}>{language === 'en' ? 'Terms and Conditions' : 'الشروط والأحكام'}</a>
+            <Link href="/terms-conditions" style={{ fontSize: '13px', color: '#9ca3af', textDecoration: 'none' }}>
+              {language === 'en' ? 'Terms and Conditions' : 'الشروط والأحكام'}
+            </Link>
           </div>
         </div>
       </div>
@@ -113,6 +113,3 @@ export const Footer: React.FC<FooterProps> = ({ language }) => {
 };
 
 Footer.displayName = 'Footer';
-
-
-
