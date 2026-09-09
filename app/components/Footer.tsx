@@ -104,9 +104,7 @@ export const Footer: React.FC<FooterProps> = ({ language }) => {
             © {currentYear} SKM Services. {language === 'en' ? 'All rights reserved.' : 'جميع الحقوق محفوظة.'}
           </p>
           <div style={{ display: 'flex', gap: '24px' }}>
-            <a href="#" style={{ fontSize: '13px', color: '#9ca3af', textDecoration: 'none' }}>{language === 'en' ? 'Privacy Policy' : 'سياسة الخصوصية'}</a>
             <a href="#" style={{ fontSize: '13px', color: '#9ca3af', textDecoration: 'none' }}>{language === 'en' ? 'Terms and Conditions' : 'الشروط والأحكام'}</a>
-            <a href="#" style={{ fontSize: '13px', color: '#9ca3af', textDecoration: 'none' }}>{language === 'en' ? 'Cookie Settings' : 'إعدادات ملفات تعريف الارتباط'}</a>
           </div>
         </div>
       </div>
@@ -115,4 +113,5 @@ export const Footer: React.FC<FooterProps> = ({ language }) => {
 };
 
 Footer.displayName = 'Footer';
+
 
