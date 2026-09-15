@@ -105,6 +105,9 @@ export const Footer: React.FC<FooterProps> = ({ language }) => {
             <Link href="/terms-conditions" style={{ fontSize: '13px', color: '#9ca3af', textDecoration: 'none' }}>
               {language === 'en' ? 'Terms and Conditions' : 'الشروط والأحكام'}
             </Link>
+            <Link href="/privacy-policy" style={{ fontSize: '13px', color: '#9ca3af', textDecoration: 'none' }}>
+              {language === 'en' ? 'Privacy Policy' : 'سياسة الخصوصية'}
+            </Link>
           </div>
         </div>
       </div>
