@@ -97,9 +97,9 @@ export default function Services() {
               {/* Rating & Button */}
               <div className="flex gap-3 items-center">
                 <span className="text-sm font-bold text-gray-900">{service.rating}</span>
-                <button className="flex-1 bg-emerald-500 text-white py-3 rounded-xl hover:bg-emerald-600 transition-colors font-semibold">
+                <a href="/booking" className="flex-1 bg-emerald-500 text-white py-3 rounded-xl hover:bg-emerald-600 transition-colors font-semibold text-center">
                   Book Now
-                </button>
+                </a>
               </div>
             </div>
           ))}
