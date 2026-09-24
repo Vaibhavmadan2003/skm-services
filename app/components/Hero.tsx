@@ -181,48 +181,6 @@ const ServicesSection: React.FC<{ language: Language }> = ({ language }) => (
             </div>
           </div>
         </div>
-
-        {/* Service 2: Laundry */}
-        <div className="service-card">
-          {/* Service Image */}
-          <img
-            src="/service-images/laundry.jpg"
-            alt={getTranslation('laundry', language)}
-            className="service-image"
-          />
-
-          {/* Service Content */}
-          <div className="service-content">
-            <h3>{getTranslation('laundry', language)}</h3>
-            <p>{getTranslation('freePickupDelivery', language)}</p>
-            <div className="service-stats">
-              <span>500+ {getTranslation('facilities', language)}</span>
-              <span>•</span>
-              <span>400+ {getTranslation('partners', language)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Service 3: Car Wash */}
-        <div className="service-card">
-          {/* Service Image */}
-          <img
-            src="/service-images/car-wash.jpg"
-            alt={getTranslation('carWash', language)}
-            className="service-image"
-          />
-
-          {/* Service Content */}
-          <div className="service-content">
-            <h3>{getTranslation('carWash', language)}</h3>
-            <p>{getTranslation('anytimeAnywhere', language)}</p>
-            <div className="service-stats">
-              <span>800+ {getTranslation('detailers', language)}</span>
-              <span>•</span>
-              <span>300+ {getTranslation('partners', language)}</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </section>

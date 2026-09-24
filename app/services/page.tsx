@@ -53,56 +53,6 @@ export default function ServicesPage() {
       image: '/service-images/home-cleaning.jpg',
       icon: '🏠',
     },
-    {
-      slug: 'laundry',
-      name: language === 'en' ? 'Laundry' : 'الغسيل',
-      description: language === 'en' 
-        ? 'Professional laundry, dry cleaning & ironing services with free pickup and delivery'
-        : 'خدمات الغسيل الاحترافي والتنظيف الجاف والكي مع الاستلام والتوصيل المجاني',
-      price: 'QR 30.00',
-      image: '/service-images/laundry.jpg',
-      icon: '👔',
-    },
-    {
-      slug: 'car-wash',
-      name: language === 'en' ? 'Mobile Car Wash' : 'غسيل السيارات المتنقل',
-      description: language === 'en'
-        ? 'Premium car wash & detailing services at your doorstep'
-        : 'خدمات غسيل السيارات المتميزة والتفاصيل في منزلك',
-      price: 'QR 40.00',
-      image: '/service-images/car-wash.jpg',
-      icon: '🚗',
-    },
-    {
-      slug: 'plumbing',
-      name: language === 'en' ? 'Plumbing Work' : 'أعمال السباكة',
-      description: language === 'en'
-        ? 'Expert plumbing repairs, installations & maintenance services'
-        : 'خدمات إصلاح السباكة والتركيب والصيانة المتخصصة',
-      price: 'QR 45.00',
-      image: '/service-images/plumbing.jpg',
-      icon: '🔧',
-    },
-    {
-      slug: 'carpentry',
-      name: language === 'en' ? 'Carpentry Work' : 'أعمال النجارة',
-      description: language === 'en'
-        ? 'Custom carpentry, furniture repair & wood restoration services'
-        : 'خدمات النجارة المخصصة وإصلاح الأثاث واستعادة الخشب',
-      price: 'QR 50.00',
-      image: '/service-images/carpentry.jpg',
-      icon: '🪛',
-    },
-    {
-      slug: 'pest-control',
-      name: language === 'en' ? 'Pest Control' : 'مكافحة الآفات',
-      description: language === 'en'
-        ? 'Safe & effective pest control, disinfection & prevention services'
-        : 'خدمات مكافحة الآفات والتطهير والوقاية الآمنة والفعالة',
-      price: 'QR 35.00',
-      image: '/service-images/pest-control.jpg',
-      icon: '🐛',
-    },
   ];
 
   return (
